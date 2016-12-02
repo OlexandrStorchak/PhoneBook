@@ -53,22 +53,30 @@ public class PBHelper {
     }
 
 
-    void addContacts() {
-        Intent addContacts = new Intent(ContactsContract.Intents.Insert.ACTION);
-        addContacts.setType(ContactsContract.RawContacts.CONTENT_TYPE);
-
-        context.startActivity(addContacts);
 
 
+void addContact(String name,String number){
+    ArrayList<ContentProviderOperation> operations = new ArrayList<>();
+    int rawContactInsertIndex = operations.size();
 
+    operations.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+            .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+            .withValue(ContactsContract.RawContacts.ACCOUNT_NAME,null )
+            .build());
+    operations.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+            .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactInsertIndex)
+            .withValue(ContactsContract.Contacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+            .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
+            .build());
+    operations.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+            .withValueBackReference(ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactInsertIndex)
+            .withValue(ContactsContract.Contacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+            .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, name)
+            .build());
+    try {
+        context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, operations);
+    } catch (RemoteException | OperationApplicationException e) {
+        e.printStackTrace();
     }
-//    void testList(ArrayList<ContactItem> list){
-//        int index =0;
-//        while (index !=  list.size()){
-//            Log.d("test", "name : "+list.get(index).getName()+" Number : " + list.get(index).getPhone());
-//            index++;
-//        }
-//
-//
-//    }
+}
 }

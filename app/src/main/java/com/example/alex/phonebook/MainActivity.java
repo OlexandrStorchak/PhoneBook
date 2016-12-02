@@ -1,7 +1,14 @@
 package com.example.alex.phonebook;
 
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
+import android.content.ContentValues;
+import android.content.Intent;
+import android.content.OperationApplicationException;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -20,9 +27,11 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "log2";
+    private static final int REQUEST_CODE_ADD_NEW = 12 ;
     RecyclerView recyclerViewContacts;
     AdapterContacts adapter;
     List<ContactItem> list;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,13 +46,9 @@ public class MainActivity extends AppCompatActivity {
         recyclerViewContacts.setLayoutManager(lManager);
         recyclerViewContacts.setAdapter(adapter);
 
-        for (int i=0;i<list.size();i++){
-            Log.d(TAG, "onCreate: "+ list.get(i).getName());
+        for (int i = 0; i < list.size(); i++) {
+            Log.d(TAG, "onCreate: " + list.get(i).getName());
         }
-
-
-
-
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -52,10 +57,21 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
-                new PBHelper(view.getContext()).addContacts();
+
+                startActivityForResult(new Intent(getApplicationContext(),AddNewActivity.class),REQUEST_CODE_ADD_NEW);
 
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode==REQUEST_CODE_ADD_NEW &&data!=null){
+            String name = data.getStringExtra("name");
+            String number = data.getStringExtra("number");
+            new PBHelper(getApplicationContext()).addContact(name,number);
+        }
     }
 
     @Override
